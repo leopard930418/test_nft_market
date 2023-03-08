@@ -10,6 +10,8 @@ const NEXT_PUBLIC_AlCHEMY_API_KEY =
   process.env.NEXT_PUBLIC_AlCHEMY_API_KEY || "v2GR76gzqrfCBB0rpky0n_rYpgFeltSk";
 
 export default function Main() {
+  const [emptyData, setEmptyData] = useState(false);
+  const [reqError, setReqError] = useState(false);
   const [openModal, setOpenModal] = useState(null);
   const [modalData, setModalData] = useState([]);
 
@@ -38,7 +40,11 @@ export default function Main() {
   };
 
   useEffect(() => {
-    if (searchKeyword) setLoading(true);
+    if (searchKeyword) {
+      setLoading(true);
+      setEmptyData(false);
+      setReqError(false);
+    }
 
     axios({
       method: "post",
@@ -48,7 +54,8 @@ export default function Main() {
       },
     })
       .then((res) => {
-        const allData = res?.data;
+        if (res.data.length == 0) setEmptyData(true);
+        console.log("res data", res.data.length);
         const nftData =
           res.data.length > 0
             ? res.data.map((i) => {
@@ -70,6 +77,7 @@ export default function Main() {
         setLoading(false);
       })
       .catch((error) => {
+        setReqError(true);
         setNftData([]);
         setLoading(false);
       });
@@ -85,7 +93,7 @@ export default function Main() {
       </Backdrop>
 
       <div className="bg-[url('/images/background.png')] min-h-screen">
-        <div className="flex flex-row gap-4 pt-24 pb-8 px-20">
+        <div className="w-full flex flex-row pt-24 pb-8 px-20">
           <input
             className="flex-1 border border-white p-4 bg-gray-600 text-white rounded-xl"
             placeholder="Contract Address"
@@ -106,33 +114,43 @@ export default function Main() {
             Cancel
           </div> */}
         </div>
-        <div className="flex flex-wrap justify-between  gap-8 px-20">
-          {nftData.map((item, index) => (
-            <NftCard
-              nftData={item}
-              setOpen={() => {
-                setOpenModal(true);
-                setModalData(item);
-              }}
-              key={index}
-            />
-          ))}
-          {Array(5)
-            .fill(0)
-            .map((_, i) => (
-              <div className="w-[300px] h-0" key={i} />
-            ))}
-        </div>
-        <div className="flex justify-center py-10">
-          <CustomPagination
-            count={Math.round(nftData[0]?.totalSupply / cardsPerPage)}
-            page={currentPage}
-            variant="outlined"
-            shape="rounded"
-            size="large"
-            onChange={handleChange}
-          />
-        </div>
+        {(reqError || emptyData) && (
+          <div className="text-white text-3xl text-center py-32">
+            There is no NFTs
+          </div>
+        )}
+        {!reqError && (
+          <>
+            <div className="flex flex-row gap-4 "></div>
+            <div className="flex flex-wrap justify-between  gap-8 px-20">
+              {nftData.map((item, index) => (
+                <NftCard
+                  nftData={item}
+                  setOpen={() => {
+                    setOpenModal(true);
+                    setModalData(item);
+                  }}
+                  key={index}
+                />
+              ))}
+              {Array(5)
+                .fill(0)
+                .map((_, i) => (
+                  <div className="w-[300px] h-0" key={i} />
+                ))}
+            </div>
+            <div className="flex justify-center py-10">
+              <CustomPagination
+                count={Math.round(nftData[0]?.totalSupply / cardsPerPage)}
+                page={currentPage}
+                variant="outlined"
+                shape="rounded"
+                size="large"
+                onChange={handleChange}
+              />
+            </div>
+          </>
+        )}
       </div>
       <DetailModal
         nftData={modalData}
