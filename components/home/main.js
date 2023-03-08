@@ -1,33 +1,147 @@
-import React from "react";
+import React, { useEffect, ReactElement, useState } from "react";
+
+import NftCard from "../base/nftCard";
+import axios from "axios";
+import { Backdrop, CircularProgress } from "@mui/material";
+import DetailModal from "../base/detailModal";
+import CustomPagination from "../base/CustomPagination";
 
 export default function Main() {
+  const [openModal, setOpenModal] = useState(null);
+  const [modalData, setModalData] = useState([]);
+
+  const [nftData, setNftData] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [cardsPerPage] = useState(8);
+  const [totalPageCount, setTotalPageCount] = useState(10);
+  const [loading, setLoading] = useState(false);
+  const [searchKeyword, setSearchKeyword] = useState(
+    "0xBC4CA0EdA7647A8aB7C2061c2E118A18a936f13D"
+  );
+
+  console.log("Modal data test======", openModal, modalData);
+  const handleChange = (event, value) => {
+    setCurrentPage(value);
+  };
+
+  const GetReqData = (pageNumber) => {
+    var reqData = [];
+    for (let i = 0; i < cardsPerPage; i++) {
+      reqData.push({
+        // contractAddress: "0xBC4CA0EdA7647A8aB7C2061c2E118A18a936f13D",
+        contractAddress: searchKeyword,
+        tokenId: (pageNumber - 1) * cardsPerPage + i,
+      });
+    }
+    return reqData;
+  };
+
+  useEffect(() => {
+    if (searchKeyword) setLoading(true);
+
+    axios({
+      method: "post",
+      url: "https://eth-mainnet.g.alchemy.com/nft/v2/v2GR76gzqrfCBB0rpky0n_rYpgFeltSk/getNFTMetadataBatch",
+      data: {
+        tokens: GetReqData(currentPage),
+      },
+    })
+      .then((res) => {
+        const allData = res?.data;
+        console.log("test data===>", allData);
+        const nftData =
+          res.data.length > 0
+            ? res.data.map((i) => {
+                return {
+                  tokenId: i.id.tokenId,
+                  tokenName: i.contractMetadata.name,
+                  collectionName: i.contractMetadata.openSea.collectionName,
+                  tokenPrice: i.contractMetadata.openSea.floorPrice,
+                  tokenMediaUrl: i.media[0].gateway,
+                  contractAddress: i.contract.address,
+                  totalSupply: i.contractMetadata.totalSupply,
+                  description: i.contractMetadata.openSea.description,
+                  tokenType: i.contractMetadata.tokenType,
+                  attributes: i.metadata.attributes,
+                };
+              })
+            : [];
+        setNftData(nftData);
+        setLoading(false);
+        setTotalPageCount(nftData.totalSupply);
+        console.log("totalPagecount", totalPageCount);
+      })
+      .catch((error) => {
+        setNftData([]);
+        setLoading(false);
+      });
+    return () => {};
+  }, [currentPage, searchKeyword]);
   return (
     <>
-      <div className="bg-[url('/images/back.jpg')] bg-cover bg-center h-[100vh] md:h-[90vh]">
-        <div className="absolute top-30 left-30 w-full md:w-1/2 px-4 py-20 md:p-20">
-          <div className="text-white  text-4xl lg:text-5xl pb-8 pt-20 font-bold">
-            Donate to Humanity
-          </div>
-          <div className="text-xl lg:text-3xl text-white py-4">
-            With Care About Our Environment <br />
-            Please support 'Humanity' and donate your crypto dust here, which
-            will be evenly distributed between The Refugee Council
-          </div>
-          <div className=" w-full md:w-1/2">
-            <div className="rounded-md border-2 border-gray-400 bg-white px-4 py-2">
-              <input
-                placeholder="Enter amount"
-                className="bg-transparent focus-visible:outline-none"
-              ></input>
-            </div>
-            <div className="py-4">
-              <div className="cursor-pointer  rounded-md bg-green-500 py-2 text-white text-center text-lg font-bold">
-                DONATE
-              </div>
-            </div>
-          </div>
+      <Backdrop
+        sx={{ color: "#fff", zIndex: (theme) => theme.zIndex.drawer + 1 }}
+        open={loading}
+      >
+        <CircularProgress color="inherit" />
+      </Backdrop>
+
+      <div className="bg-[url('/images/background.png')] min-h-screen">
+        <div className="flex flex-row gap-4 pt-24 pb-8 px-20">
+          <input
+            className="flex-1 border border-white p-4 bg-gray-600 text-white rounded-xl"
+            placeholder="Contract Address"
+            // autoFocus
+            name="searchkeyword"
+            id="searchkeyword"
+            value={searchKeyword}
+            onChange={(event) => {
+              setSearchKeyword(event.target.value);
+            }}
+          />
+          {/* <div
+            className="cursor-pointer text-white border border-white rounded-xl flex justify-center items-center px-8"
+            onClick={() => {
+              setSearchKeyword("");
+            }}
+          >
+            Cancel
+          </div> */}
+        </div>
+        <div className="flex flex-wrap justify-between  gap-8 px-20">
+          {nftData.map((item, index) => (
+            <NftCard
+              nftData={item}
+              setOpen={() => {
+                setOpenModal(true);
+                setModalData(item);
+              }}
+              key={index}
+            />
+          ))}
+          {Array(5)
+            .fill(0)
+            .map((_, i) => (
+              <div className="w-[300px] h-0" key={i} />
+            ))}
+        </div>
+        <div className="flex justify-center py-10">
+          {console.log(">>>>>>>>>>>>", nftData)}
+          <CustomPagination
+            count={nftData[0].totalSupply / cardsPerPage}
+            page={currentPage}
+            variant="outlined"
+            shape="rounded"
+            size="large"
+            onChange={handleChange}
+          />
         </div>
       </div>
+      <DetailModal
+        nftData={modalData}
+        openModal={!!openModal}
+        onClose={() => setOpenModal(null)}
+      />
     </>
   );
 }
