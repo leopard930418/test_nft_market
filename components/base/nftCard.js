@@ -5,7 +5,7 @@ export default function NftCard({ nftData, setOpen }) {
 
   return (
     <div
-      className="cursor-pointer flex flex-col justify-between w-[300px] h-auto bg-white bg-opacity-5 border-white border border-opacity-70 rounded-2xl p-4 hover:scale-105 hover:border-blue-600"
+      className="cursor-pointer flex flex-col justify-between w-[270px] h-auto bg-white bg-opacity-5 border-white border border-opacity-70 rounded-2xl p-4 hover:scale-105 hover:border-blue-600"
       onClick={handleOpen}
     >
       <div className="w-full aspect-square pb-4">

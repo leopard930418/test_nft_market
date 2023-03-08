@@ -122,7 +122,7 @@ export default function Main() {
         {!reqError && (
           <>
             <div className="flex flex-row gap-4 "></div>
-            <div className="flex flex-wrap justify-between  gap-8 px-20">
+            <div className="flex flex-wrap  justify-center md:justify-between  gap-8 px-20">
               {nftData.map((item, index) => (
                 <NftCard
                   nftData={item}
@@ -133,13 +133,13 @@ export default function Main() {
                   key={index}
                 />
               ))}
-              {Array(5)
+              {Array(8)
                 .fill(0)
                 .map((_, i) => (
-                  <div className="w-[300px] h-0" key={i} />
+                  <div className="w-[270px] h-0" key={i} />
                 ))}
             </div>
-            <div className="flex justify-center py-10">
+            <div className="w-full flex justify-center py-10">
               <CustomPagination
                 count={Math.round(nftData[0]?.totalSupply / cardsPerPage)}
                 page={currentPage}

@@ -13,7 +13,7 @@ export default function Header({ color = false, ...props }) {
   return (
     <div className="fixed w-full flex justify-between items-center bg-white h-16 z-50 py-2 px-4 md:px-20">
       <div className="text-3xl text-blue-600 font-bold">Test Project</div>
-      <div className="flex flex-row gap-8">
+      <div className="hidden md:flex flex-row gap-8">
         <div className="cursor-pointer text-gray-700 hover:text-white hover:bg-blue-500 hover:rounded-3xl py-2 px-4">
           Home
         </div>
