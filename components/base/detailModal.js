@@ -170,7 +170,7 @@ export default function DetailModal({
                   );
                 }}
               >
-                Buy
+                Purchase
               </div>
             </div>
           </div>

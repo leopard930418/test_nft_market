@@ -1,10 +1,13 @@
-import React, { useEffect, ReactElement, useState } from "react";
+import React, { useEffect, useState } from "react";
 
 import NftCard from "../base/nftCard";
 import axios from "axios";
 import { Backdrop, CircularProgress } from "@mui/material";
 import DetailModal from "../base/detailModal";
 import CustomPagination from "../base/CustomPagination";
+
+const NEXT_PUBLIC_AlCHEMY_API_KEY =
+  process.env.NEXT_PUBLIC_AlCHEMY_API_KEY || "v2GR76gzqrfCBB0rpky0n_rYpgFeltSk";
 
 export default function Main() {
   const [openModal, setOpenModal] = useState(null);
@@ -13,13 +16,11 @@ export default function Main() {
   const [nftData, setNftData] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [cardsPerPage] = useState(8);
-  const [totalPageCount, setTotalPageCount] = useState(10);
   const [loading, setLoading] = useState(false);
   const [searchKeyword, setSearchKeyword] = useState(
     "0xBC4CA0EdA7647A8aB7C2061c2E118A18a936f13D"
   );
 
-  console.log("Modal data test======", openModal, modalData);
   const handleChange = (event, value) => {
     setCurrentPage(value);
   };
@@ -41,14 +42,13 @@ export default function Main() {
 
     axios({
       method: "post",
-      url: "https://eth-mainnet.g.alchemy.com/nft/v2/v2GR76gzqrfCBB0rpky0n_rYpgFeltSk/getNFTMetadataBatch",
+      url: `https://eth-mainnet.g.alchemy.com/nft/v2/${NEXT_PUBLIC_AlCHEMY_API_KEY}/getNFTMetadataBatch`,
       data: {
         tokens: GetReqData(currentPage),
       },
     })
       .then((res) => {
         const allData = res?.data;
-        console.log("test data===>", allData);
         const nftData =
           res.data.length > 0
             ? res.data.map((i) => {
@@ -68,8 +68,6 @@ export default function Main() {
             : [];
         setNftData(nftData);
         setLoading(false);
-        setTotalPageCount(nftData.totalSupply);
-        console.log("totalPagecount", totalPageCount);
       })
       .catch((error) => {
         setNftData([]);
@@ -126,9 +124,8 @@ export default function Main() {
             ))}
         </div>
         <div className="flex justify-center py-10">
-          {console.log(">>>>>>>>>>>>", nftData)}
           <CustomPagination
-            count={nftData[0].totalSupply / cardsPerPage}
+            count={Math.round(nftData[0]?.totalSupply / cardsPerPage)}
             page={currentPage}
             variant="outlined"
             shape="rounded"
